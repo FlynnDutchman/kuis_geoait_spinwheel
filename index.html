@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Putar dan Jawab Geo-AIT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#E6EFF5;--ink:#082033;--sub:#3F5B6E;--card:#FFFFFF;--line:rgba(8,32,51,.09);--accent:#0A6E8A;--on-accent:#FFFFFF;--ok:#1E7A46;--bad:#B3392A;--okbg:#DDF1E4;--badbg:#F9E0DC;--shadow:rgba(15,42,46,.18);color-scheme:light;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#06172A;--ink:#E3F1F8;--sub:#8FB0C4;--card:#0C2540;--line:rgba(120,200,235,.13);--accent:#38C8E6;--on-accent:#04202E;--ok:#6DD39A;--bad:#FF8A78;--okbg:#17382A;--badbg:#3E1E1A;--shadow:rgba(0,0,0,.5);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#06172A;--ink:#E3F1F8;--sub:#8FB0C4;--card:#0C2540;--line:rgba(120,200,235,.13);--accent:#38C8E6;--on-accent:#04202E;--ok:#6DD39A;--bad:#FF8A78;--okbg:#17382A;--badbg:#3E1E1A;--shadow:rgba(0,0,0,.5);color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background-color:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;
+background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px),repeating-radial-gradient(circle at 88% 10%,transparent 0 30px,var(--line) 30px 31px),repeating-radial-gradient(circle at 6% 94%,transparent 0 38px,var(--line) 38px 39px);background-size:56px 56px,56px 56px,auto,auto}
+main{max-width:1100px;margin:0 auto;padding:24px 20px 32px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,560px);gap:32px;align-items:center;min-height:100vh}
+h1{font-size:clamp(2.2rem,5vw,3.8rem);line-height:1.02;margin:0 0 14px;font-weight:800;letter-spacing:-.02em}
+.lead{font-size:1.1rem;line-height:1.5;color:var(--sub);max-width:34ch;margin:0 0 24px}
+.org{font-weight:700;color:var(--accent);margin:0 0 12px;font-size:1rem}
+.score{display:inline-flex;align-items:baseline;gap:10px;background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:10px 18px;box-shadow:0 6px 0 var(--accent)}
+.score b{font-size:2rem;font-weight:800}
+.score span{color:var(--sub)}
+.reset{display:block;margin-top:22px;background:none;border:0;color:var(--sub);font:inherit;text-decoration:underline;cursor:pointer;padding:6px 0}
+.stage{position:relative;width:100%;aspect-ratio:1/1}
+.stage::before{content:"";position:absolute;inset:-12px;border:2px dashed var(--accent);border-radius:50%;opacity:.45}
+.hud{font:500 .85rem/1.4 ui-monospace,Menlo,Consolas,monospace;color:var(--sub);margin:20px 0 0;padding-left:12px;border-left:3px solid var(--accent)}
+canvas{width:100%;height:100%;display:block;filter:drop-shadow(0 14px 22px var(--shadow))}
+.pointer{position:absolute;left:50%;top:-2px;width:0;height:0;transform:translateX(-50%);border-left:20px solid transparent;border-right:20px solid transparent;border-top:42px solid var(--ink);filter:drop-shadow(0 3px 2px var(--shadow));z-index:2}
+#spin{position:absolute;left:50%;top:50%;width:22%;aspect-ratio:1/1;transform:translate(-50%,-50%);border-radius:50%;border:5px solid var(--card);background:var(--accent);color:var(--on-accent);font:800 clamp(.8rem,2.6vw,1.25rem)/1 "Bricolage Grotesque",system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 14px var(--shadow);z-index:3}
+#spin:disabled{cursor:default;opacity:.85}
+:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+#modal{position:fixed;inset:0;background:rgba(6,20,23,.66);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+#modal[hidden]{display:none}
+.card{background:var(--card);color:var(--ink);width:min(640px,100%);max-height:100%;overflow:auto;border-radius:22px;padding:28px;border-top:10px solid var(--seg,var(--accent));animation:pop .22s ease-out}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+.cat{margin:0 0 6px;font-weight:700;color:var(--sub)}
+.q{font-size:clamp(1.3rem,3.4vw,1.8rem);line-height:1.25;font-weight:700;margin:0 0 18px}
+.opts{display:grid;gap:10px}
+.opt{font:600 1.05rem/1.3 "Bricolage Grotesque",system-ui,sans-serif;text-align:left;padding:14px 16px;border-radius:12px;border:2px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;min-height:52px}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.ok{background:var(--okbg);border-color:var(--ok)}
+.opt.bad{background:var(--badbg);border-color:var(--bad)}
+.opt:disabled{cursor:default}
+.res{margin:18px 0 0;padding:14px 16px;border-radius:12px;line-height:1.5}
+.res strong{display:block;font-size:1.2rem;margin-bottom:4px}
+.res.ok{background:var(--okbg)}.res.bad{background:var(--badbg)}.res.info{background:var(--line)}
+.go{margin-top:18px;font:800 1.1rem "Bricolage Grotesque",system-ui,sans-serif;background:var(--accent);color:var(--on-accent);border:0;border-radius:12px;padding:14px 26px;cursor:pointer}
+@media (max-width:860px){main{grid-template-columns:1fr;gap:20px;padding-top:16px}.lead{max-width:none;margin-bottom:16px}.stage{max-width:520px;margin:0 auto}}
+@media (prefers-reduced-motion:reduce){.card{animation:none}}
+:root{--bg:#EDF3FA;--accent:#0B3A66;--on-accent:#FFFFFF;--brand:#0A84FF;--navy:#0B3A66;--line:rgba(11,58,102,.10)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#061A33;--accent:#3D9BFF;--on-accent:#04223F;--brand:#3D9BFF;--navy:#CFE5FF}}
+:root[data-theme="dark"]{--bg:#061A33;--accent:#3D9BFF;--on-accent:#04223F;--brand:#3D9BFF;--navy:#CFE5FF}
+body{background-image:radial-gradient(ellipse at 12% 0%,color-mix(in srgb,var(--brand) 20%,transparent),transparent 55%),radial-gradient(ellipse at 100% 100%,color-mix(in srgb,var(--brand) 16%,transparent),transparent 50%),linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px),repeating-radial-gradient(circle at 90% 8%,transparent 0 30px,var(--line) 30px 31px);background-size:auto,auto,56px 56px,56px 56px,auto}
+main{padding-bottom:84px}
+.brand{display:flex;align-items:center;gap:14px;margin:0 0 22px}
+.brand svg{width:68px;height:68px;flex:none}
+.brand b{display:block;font-size:1.5rem;font-weight:800;letter-spacing:-.01em}
+.brand small{color:var(--sub);font-size:.95rem}
+h1::after{content:"";display:block;width:132px;height:30px;margin-top:16px;background:radial-gradient(circle at 15px 15px,var(--navy) 0 15px,transparent 16px),linear-gradient(var(--brand),var(--brand)) 15px 11px/117px 8px no-repeat}
+.score{border-color:var(--navy);box-shadow:0 6px 0 var(--brand)}
+.scan{margin:24px 0 0;max-width:430px}
+.scan svg{width:100%;height:auto;display:block;border-radius:14px;box-shadow:0 10px 26px var(--shadow)}
+.bb{animation:dash 1.4s linear infinite}
+.sweep{animation:sweep 4.5s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-20}}
+@keyframes sweep{from{transform:translateX(0)}to{transform:translateX(417px)}}
+#spin{box-shadow:0 0 0 9px var(--brand),0 8px 20px var(--shadow)}
+.card{position:relative}
+.card::before,.card::after{content:"";position:absolute;width:30px;height:30px;border:4px solid var(--brand);pointer-events:none}
+.card::before{top:12px;left:12px;border-right:0;border-bottom:0;border-radius:10px 0 0 0}
+.card::after{right:12px;bottom:12px;border-left:0;border-top:0;border-radius:0 0 10px 0}
+.cat{display:inline-block;background:var(--accent);color:var(--on-accent);padding:5px 14px;border-radius:999px;font-size:.9rem;margin-bottom:12px}
+.ticker{position:fixed;left:0;right:0;bottom:0;background:var(--accent);color:var(--on-accent);overflow:hidden;padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px));z-index:5;font-weight:700}
+.ticker div{display:flex;gap:36px;padding-right:36px;width:max-content;animation:tick 50s linear infinite}
+.ticker span{white-space:nowrap}
+.ticker span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--brand);margin-right:10px;box-shadow:0 0 0 2px var(--on-accent)}
+@keyframes tick{to{transform:translateX(-50%)}}
+@media (max-width:860px){.scan{display:none}}
+@media (prefers-reduced-motion:reduce){.bb,.sweep,.ticker div{animation:none}}
+:root,:root:not([data-theme="light"]),:root[data-theme="dark"]{--bg:#FFFFFF;--ink:#082033;--sub:#3F5B6E;--card:#FFFFFF;--line:rgba(11,58,102,.10);--accent:#0B3A66;--on-accent:#FFFFFF;--brand:#0A84FF;--navy:#0B3A66;--shadow:rgba(15,42,46,.18);color-scheme:light}
+body,button,.opt,.go,#spin{font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+h1{letter-spacing:-.03em;line-height:1.08}
+body{background-color:#FFFFFF;background-image:none}
+.opt.ok{background:#4ADE80;border-color:#16A34A;color:#052E16}
+.opt.bad{background:#DC2626;border-color:#991B1B;color:#FFFFFF}
+.res strong{font-size:2rem;margin-bottom:6px;letter-spacing:.01em}
+.res.ok{background:#4ADE80;color:#052E16}
+.res.bad{background:#DC2626;color:#FFFFFF}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:20}
+.card.shake{animation:shake .45s}
+@keyframes shake{20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){.card.shake{animation:none}}
+.merch{display:flex;align-items:flex-end;gap:16px;margin:26px 0 0;flex-wrap:wrap}
+.merch svg{display:block;filter:drop-shadow(0 10px 14px rgba(8,32,51,.22))}
+.m-pen{width:240px;transform:rotate(-8deg);margin-bottom:14px}
+.m-key{width:80px;transform:rotate(6deg)}
+.m-stk{width:88px;transform:rotate(-6deg)}
+.merch-cap{flex-basis:100%;margin:0 0 6px;font-size:.95rem;font-weight:600;color:var(--sub)}
+@media (max-width:860px){.merch{display:none}}
+.m-pen{animation:floatpen 4.2s ease-in-out infinite}
+.m-key{transform-origin:50% 6%;animation:swing 3.2s ease-in-out infinite}
+.m-stk{animation:floatstk 5s ease-in-out infinite}
+@keyframes floatpen{0%,100%{transform:rotate(-8deg) translateY(0)}50%{transform:rotate(-5deg) translateY(-10px)}}
+@keyframes swing{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+@keyframes floatstk{0%,100%{transform:rotate(-6deg) translateY(0)}50%{transform:rotate(4deg) translateY(-8px)}}
+@media (prefers-reduced-motion:reduce){.m-pen,.m-key,.m-stk{animation:none}}
+</style>
+</head>
+<body>
+<main>
+  <section>
+    <div class="brand"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="38" fill="none" stroke="var(--brand)" stroke-width="20" stroke-dasharray="212 27"/><rect x="50" y="44" width="50" height="12" fill="var(--navy)"/><circle cx="50" cy="50" r="19" fill="var(--navy)"/></svg><div><b>Geo-AIT</b><small>Geo-AI Twinverse, Teknik Geodesi UGM</small></div></div>
+    <h1>Putar roda, jawab, bawa pulang merchandise</h1>
+    <p class="lead">Tekan tombol di tengah roda, lalu jawab pertanyaan seputar peta, digital twin, dan AI yang kami kembangkan.</p>
+    <div class="score" aria-live="polite"><b id="sc">0/0</b><span>jawaban benar</span></div>
+    <p class="hud">UGM, Yogyakarta: 7,77° LS, 110,38° BT</p>
+    <button class="reset" id="reset" type="button">Ganti pemain</button>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="glogo" viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="none" stroke="#0A84FF" stroke-width="20" stroke-dasharray="212 27"/><rect x="50" y="44" width="50" height="12" fill="#0B3A66"/><circle cx="50" cy="50" r="19" fill="#0B3A66"/></symbol></svg>
+    <div class="merch" aria-hidden="true">
+      <p class="merch-cap">Merchandise Geo-AIT: bolpen, gantungan kunci, dan stiker</p>
+      <svg class="m-pen" viewBox="0 0 380 64"><defs><linearGradient id="pb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5B9BFF"/><stop offset=".45" stop-color="#0A4DE0"/><stop offset="1" stop-color="#0A2A8A"/></linearGradient><linearGradient id="ps" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F8FAFC"/><stop offset=".5" stop-color="#9CA3AF"/><stop offset="1" stop-color="#E5E7EB"/></linearGradient></defs><path d="M4 33 L44 24 L44 42 Z" fill="url(#ps)"/><path d="M40 22 L340 18 Q372 18 372 33 Q372 48 340 48 L40 44 Z" fill="url(#pb)"/><path d="M60 23.5 L340 21" stroke="#fff" stroke-opacity=".4" stroke-width="3" stroke-linecap="round"/><rect x="40" y="25" width="10" height="16" fill="url(#ps)"/><path d="M190 14 L350 11 Q360 11 360 15 L360 18 L190 20 Z" fill="url(#ps)"/><circle cx="214" cy="34" r="10" fill="#fff"/><use href="#glogo" x="205" y="25" width="18" height="18"/><text x="230" y="39" font-size="15" font-weight="800" fill="#fff" font-family="Plus Jakarta Sans,system-ui,sans-serif">Geo-AIT</text></svg>
+      <svg class="m-key" viewBox="0 0 150 230"><circle cx="75" cy="15" r="12" fill="none" stroke="#9CA3AF" stroke-width="4"/><circle cx="75" cy="40" r="7" fill="none" stroke="#9CA3AF" stroke-width="3.5"/><circle cx="75" cy="58" r="7" fill="none" stroke="#9CA3AF" stroke-width="3.5"/><circle cx="75" cy="76" r="7" fill="none" stroke="#9CA3AF" stroke-width="3.5"/><circle cx="75" cy="154" r="68" fill="#C7D6EA"/><circle cx="75" cy="150" r="68" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2"/><circle cx="75" cy="92" r="5" fill="#E2E8F0" stroke="#CBD5E1"/><use href="#glogo" x="39" y="106" width="72" height="72"/><text x="75" y="198" text-anchor="middle" font-size="10" font-weight="800" fill="#0B3A66" font-family="Plus Jakarta Sans,system-ui,sans-serif">GeoAI Twinverse</text></svg>
+      <svg class="m-stk" viewBox="0 0 150 150"><circle cx="75" cy="79" r="68" fill="#C7D6EA" opacity=".6"/><circle cx="75" cy="75" r="68" fill="#fff" stroke="#E2E8F0" stroke-width="3"/><use href="#glogo" x="33" y="20" width="84" height="84"/><text x="75" y="122" text-anchor="middle" font-size="10.5" font-weight="800" fill="#0B3A66" font-family="Plus Jakarta Sans,system-ui,sans-serif">GeoAI Twinverse</text></svg>
+    </div>
+  </section>
+  <section class="stage" aria-label="Roda pertanyaan">
+    <div class="pointer" aria-hidden="true"></div>
+    <canvas id="wheel" aria-hidden="true"></canvas>
+    <button id="spin" type="button">PUTAR</button>
+  </section>
+</main>
+<div class="ticker" aria-hidden="true"><div id="tk"></div></div>
+<div id="modal" hidden><div class="card" role="dialog" aria-modal="true" aria-labelledby="mq" id="card"></div></div>
+
+<script>
+// Ubah teks hadiah sesuai yang tersedia di booth.
+var PRIZE = "Tunjukkan layar ini ke petugas booth untuk mengambil merchandise.";
+var SEG = [
+  {n:"Kenalan Geo-AIT", c:"#0369A1", k:"kenal"},
+  {n:"DT Volcano", c:"#C2410C", k:"volcano"},
+  {n:"DT Teknik", c:"#3B3FB5", k:"teknik"},
+  {n:"PANDALA", c:"#2E7D32", k:"pandala"},
+  {n:"NARAGA", c:"#BE123C", k:"naraga"},
+  {n:"DT Heritage", c:"#7C3AED", k:"heritage"},
+  {n:"DT IKN", c:"#0F766E", k:"ikn"},
+  {n:"Tata Ruang AI", c:"#475569", k:"ruang"},
+  {n:"DT Forest", c:"#4D7C0F", k:"forest"},
+  {n:"DT Bina Marga", c:"#B45309", k:"binamarga"}
+];
+// Format: [pertanyaan, [jawaban benar, salah1, salah2, salah3], penjelasan]
+var Q = {
+  kenal: [
+    ["Geo-AIT itu singkatan dari apa?", ["Geo-AI Twinverse","Geo-Aerial Imaging Team","Global AI Technology","Geodetic Automation and Imaging Tools"], "Geo-AI Twinverse adalah tim riset dan inovasi di Departemen Teknik Geodesi FT UGM."],
+    ["Geo-AIT adalah tim riset dari departemen apa?", ["Teknik Geodesi","Teknik Geologi","Teknik Sipil dan Lingkungan","Teknik Elektro dan Teknologi Informasi"], "Geo-AIT berbasis di Departemen Teknik Geodesi, Fakultas Teknik UGM."],
+    ["Logo Geo-AIT berbentuk huruf apa?", ["G","A","T","O"], "Logonya huruf G berwarna biru, dengan titik dan garis navy di tengahnya."]
+  ],
+  volcano: [
+    ["Gunung api apa saja yang ada di DT Volcano?", ["Agung dan Kelud","Merapi dan Bromo","Semeru dan Rinjani","Krakatau dan Sinabung"], "DT Volcano saat ini memuat Gunung Agung di Bali dan Gunung Kelud di Jawa Timur."],
+    ["Berapa kali survei drone (epoch) Gunung Agung tercatat di DT Volcano?", ["5","2","3","7"], "Gunung Agung punya 5 epoch (2017 sampai 2020), sedangkan Kelud punya 2 epoch."],
+    ["Berapa ketinggian Gunung Agung menurut DT Volcano?", ["3.031 m","1.731 m","2.930 m","3.142 m"], "Gunung Agung di Bali setinggi 3.031 m. Angka 1.731 m adalah tinggi Gunung Kelud."]
+  ],
+  teknik: [
+    ["Di DT Teknik, berapa gedung yang sudah dipetakan?", ["18","8","10","30"], "Ada 18 gedung yang dipetakan di Digital Twin Fakultas Teknik UGM."],
+    ["Berapa hektar luas area kampus FT UGM di DT Teknik?", ["10 hektar","5 hektar","18 hektar","30 hektar"], "Area yang dicakup DT Teknik seluas 10 hektar."],
+    ["Gedung ERIC di FT UGM kepanjangannya apa?", ["Engineering Research Innovation Center","Engineering Research and Industry Center","Electrical Research Innovation Center","Engineering Resource Information Center"], "ERIC adalah Engineering Research Innovation Center, salah satu gedung yang sudah dimodelkan."]
+  ],
+  pandala: [
+    ["PANDALA itu singkatan dari apa?", ["Palm & Land Cover Analysis","Panorama Data Lahan","Peta Analisis Daerah Lahan","Pemetaan Digital Lalu Lintas"], "PANDALA adalah aplikasi desktop untuk analisis sawit dan tutupan lahan."],
+    ["PANDALA dipakai untuk mendeteksi pohon apa?", ["Kelapa sawit","Jati","Karet","Kelapa"], "PANDALA memakai deep learning dan citra satelit untuk mendeteksi kelapa sawit."],
+    ["PANDALA dikembangkan bersama BPN Kanwil provinsi mana?", ["Kalimantan Timur","Kalimantan Barat","Riau","Sumatera Utara"], "PANDALA dikembangkan bersama BPN Kanwil Kalimantan Timur."]
+  ],
+  naraga: [
+    ["NARAGA itu singkatan dari apa?", ["Nusantara AI for Real-time Analytics and Geospatial Applications","National Aerial Records and Geodetic Atlas","Nusantara Applied Robotics and GIS Analytics","Navigasi Agraria dan Geospasial Rakyat"], "NARAGA adalah platform GeoAI nasional berbasis cloud untuk analisis geospasial real-time."],
+    ["Tim NARAGA mengambil data drone di kota apa?", ["IKN (Ibu Kota Nusantara)","Jakarta","Yogyakarta","Balikpapan"], "Tim terbang di Kawasan Inti Pusat Pemerintahan IKN untuk menguji alur kerja NARAGA."],
+    ["Berapa hektar Tahura IKN yang dipetakan tim setelah kebakaran?", ["Sekitar 2.100 hektar","Sekitar 210 hektar","Sekitar 21 hektar","Sekitar 21.000 hektar"], "Pemetaan memakai VTOL UAV untuk menganalisis perubahan tutupan lahan pascakebakaran."]
+  ],
+  heritage: [
+    ["Sumbu Filosofis Yogyakarta di DT Heritage menghubungkan tiga titik. Apa saja?", ["Tugu Pal Putih, Keraton Ngayogyakarta, Panggung Krapyak","Stasiun Tugu, Malioboro, Bandara YIA","Candi Borobudur, Candi Prambanan, Keraton Surakarta","Monumen Jogja Kembali, Benteng Vredeburg, Alun-Alun Kidul"], "Sumbu Filosofis adalah garis sakral dari Tugu Pal Putih lewat Keraton sampai Panggung Krapyak."],
+    ["Titik paling utara Sumbu Filosofis Yogyakarta adalah…", ["Tugu Pal Putih","Keraton Ngayogyakarta","Panggung Krapyak","Alun-Alun Kidul"], "Tugu Pal Putih ada di sisi utara sumbu."],
+    ["Titik paling selatan Sumbu Filosofis Yogyakarta adalah…", ["Panggung Krapyak","Tugu Pal Putih","Keraton Ngayogyakarta","Alun-Alun Kidul"], "Panggung Krapyak ada di sisi selatan sumbu, lebih jauh dari Alun-Alun Kidul."]
+  ],
+  ikn: [
+    ["IKN Digital Twin ditenagai data dari platform apa?", ["NARAGA","PANDALA","Geo-CARTA","Jagad Lintang"], "Halaman IKN Digital Twin menyebut dirinya ditenagai data NARAGA."],
+    ["Teknologi apa yang dipakai Kembaran 3D di IKN Digital Twin?", ["Cesium","Leaflet","OpenLayers","Unity"], "Model 3D detail di IKN Digital Twin memakai Cesium."],
+    ["Mana simulasi yang tersedia di IKN Digital Twin?", ["Banjir","Tsunami","Gempa bumi","Longsor"], "Simulasinya: banjir, bayangan matahari, viewshed CCTV, dan kebakaran hutan."]
+  ],
+  ruang: [
+    ["RDTR itu singkatan dari apa?", ["Rencana Detail Tata Ruang","Rencana Dasar Tanah Rakyat","Rancangan Data Titik Referensi","Rencana Desain Tata Rumah"], "RDTR adalah rencana detail tata ruang. Geo-AIT membuatnya dalam bentuk 3D."],
+    ["RDTR-3D Jakarta dikembangkan bersama kementerian mana?", ["Kementerian ATR/BPN","Kementerian PUPR","Kementerian Perhubungan","Kementerian Pariwisata"], "RDTR-3D dikembangkan bersama Ditjen Tata Ruang, Kementerian ATR/BPN."],
+    ["Jagad Lintang dan Landep adalah aplikasi AI untuk apa?", ["Memantau tata ruang dan pengelolaan lahan","Mendeteksi pohon sawit dari satelit","Memetakan kedalaman laut","Menghitung stok karbon hutan"], "Keduanya didemonstrasikan bersama ATR/BPN untuk pemantauan tata ruang berbasis AI."]
+  ],
+  forest: [
+    ["DT Forest memodelkan hutan yang mana?", ["Hutan Wanagama","Hutan Pinus Mangunan","Taman Nasional Gunung Merapi","Hutan Lindung Kaliurang"], "DT Forest adalah penampil geospasial 3D untuk Hutan Wanagama."],
+    ["Foto udara (orthophoto) di DT Forest tersedia untuk tahun…", ["2019, 2023, dan 2026","2018, 2021, dan 2025","2019, 2022, dan 2026","2020, 2023, dan 2026"], "Tiga tahun itu bisa dipilih untuk membandingkan kondisi hutan."],
+    ["Salah satu lokasi yang bisa dijelajahi di DT Forest adalah…", ["Museum Kayu","Museum Batik","Museum Gunung Api","Taman Pintar"], "Selain Museum Kayu, ada juga Persemaian dan Healing Forest."]
+  ],
+  binamarga: [
+    ["Digital Twin Bina Marga adalah portal data spasial untuk apa?", ["Jalan dan jembatan","Bendungan dan irigasi","Bandara dan pelabuhan","Gedung dan perumahan"], "Portal ini memuat data spasial infrastruktur jalan dan jembatan."],
+    ["Layer data di Digital Twin Bina Marga berasal dari…", ["Data publik Bina Marga","Data satelit komersial berbayar","Survei drone Geo-AIT saja","Data media sosial"], "Layer dimuat dari data publik Bina Marga."],
+    ["Peta dasar yang tampil di Digital Twin Bina Marga berasal dari…", ["OpenStreetMap","Google Maps","Bing Maps","Esri World Imagery"], "Peta dasarnya menampilkan atribusi OpenStreetMap contributors."]
+  ]
+};
+
+var cv = document.getElementById("wheel"), ctx = cv.getContext("2d");
+var spinBtn = document.getElementById("spin"), modal = document.getElementById("modal"), card = document.getElementById("card");
+var TAU = Math.PI * 2, ARC = TAU / SEG.length, rot = 0, spinning = false, right = 0, total = 0, used = {};
+var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var last = -1;
+
+function size() {
+  var s = cv.parentElement.clientWidth, d = window.devicePixelRatio || 1;
+  cv.width = cv.height = Math.round(s * d);
+  draw();
+}
+function draw() {
+  var W = cv.width, c = W / 2, r = c * 0.9;
+  ctx.clearRect(0, 0, W, W);
+  for (var i = 0; i < SEG.length; i++) {
+    var a = rot + i * ARC;
+    ctx.beginPath(); ctx.moveTo(c, c); ctx.arc(c, c, r, a, a + ARC); ctx.closePath();
+    ctx.fillStyle = SEG[i].c; ctx.fill();
+    ctx.lineWidth = W * 0.006; ctx.strokeStyle = "rgba(255,255,255,.85)"; ctx.stroke();
+    ctx.save(); ctx.translate(c, c); ctx.rotate(a + ARC / 2);
+    ctx.fillStyle = "#fff"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    ctx.font = "700 " + Math.round(W * 0.033) + 'px "Plus Jakarta Sans",system-ui,sans-serif';
+    ctx.fillText(SEG[i].n, r - W * 0.04, 0);
+    ctx.restore();
+  }
+  ctx.beginPath(); ctx.arc(c, c, r, 0, TAU); ctx.lineWidth = W * 0.03; ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--brand").trim() || "#0A84FF"; ctx.stroke();
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#0A6E8A"; ctx.lineWidth = W * 0.003;
+  for (var t = 0; t < 72; t++) {
+    var ta = t * TAU / 72, ln = t % 6 === 0 ? 0.06 : 0.03;
+    ctx.beginPath(); ctx.moveTo(c + Math.cos(ta) * c * 0.93, c + Math.sin(ta) * c * 0.93);
+    ctx.lineTo(c + Math.cos(ta) * c * (0.93 + ln), c + Math.sin(ta) * c * (0.93 + ln)); ctx.stroke();
+  }
+}
+function ease(t) { return 1 - Math.pow(1 - t, 4); }
+function spin() {
+  if (spinning) return;
+  spinning = true; spinBtn.disabled = true;
+  var start = rot, turns = reduce ? 1 : 5 + Math.floor(Math.random() * 3);
+  var tg;
+  do { tg = Math.floor(Math.random() * SEG.length); } while (tg === last && SEG.length > 1);
+  last = tg;
+  var want = (((1.5 * Math.PI - (tg * ARC + ARC * (0.15 + Math.random() * 0.7))) % TAU) + TAU) % TAU;
+  var delta = turns * TAU + ((((want - start) % TAU) + TAU) % TAU), dur = reduce ? 1200 : 5200, t0 = performance.now();
+  (function step(now) {
+    var t = Math.min(1, (now - t0) / dur);
+    rot = start + delta * ease(t); draw();
+    if (t < 1) requestAnimationFrame(step); else done();
+  })(t0);
+}
+function done() {
+  var ang = (((1.5 * Math.PI - rot) % TAU) + TAU) % TAU;
+  spinning = false; spinBtn.disabled = false;
+  show(SEG[Math.floor(ang / ARC) % SEG.length]);
+}
+function pick(k) {
+  var pool = Q[k]; used[k] = used[k] || [];
+  var left = pool.map(function (_, i) { return i; }).filter(function (i) { return used[k].indexOf(i) < 0; });
+  if (!left.length) { used[k] = []; left = pool.map(function (_, i) { return i; }); }
+  var i = left[Math.floor(Math.random() * left.length)];
+  used[k].push(i); return pool[i];
+}
+function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt) e.textContent = txt; return e; }
+function close() { modal.hidden = true; spinBtn.focus(); }
+function nextBtn(label) { var b = el("button", "go", label); b.type = "button"; b.onclick = close; return b; }
+
+function show(seg) {
+  card.innerHTML = ""; card.classList.remove("shake"); card.style.setProperty("--seg", seg.c);
+  card.appendChild(el("p", "cat", "Terdeteksi: " + seg.n + " (" + (90 + Math.floor(Math.random() * 9)) + "%)"));
+  var focusEl;
+  {
+    var it = pick(seg.k), ans = it[1][0];
+    var q = el("h2", "q", it[0]); q.id = "mq"; card.appendChild(q);
+    var box = el("div", "opts"); card.appendChild(box);
+    var btns = shuffle(it[1]).map(function (t) {
+      var b = el("button", "opt", t); b.type = "button"; box.appendChild(b); return b;
+    });
+    btns.forEach(function (b) {
+      b.onclick = function () {
+        var ok = b.textContent === ans; total++; if (ok) right++;
+        document.getElementById("sc").textContent = right + "/" + total;
+        btns.forEach(function (x) {
+          x.disabled = true;
+          if (x.textContent === ans) x.classList.add("ok"); else if (x === b) x.classList.add("bad");
+        });
+        var res = el("div", "res " + (ok ? "ok" : "bad"));
+        res.appendChild(el("strong", "", ok ? "BENAR! 🎉" : "Yah, salah 😢"));
+        if (ok) fireworks(); else { card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake"); }
+        res.appendChild(document.createTextNode(it[2] + (ok ? " " + PRIZE : "")));
+        card.appendChild(res);
+        var nb = nextBtn("Putar lagi"); card.appendChild(nb); nb.focus();
+      };
+    });
+    focusEl = btns[0];
+  }
+  modal.hidden = false; focusEl.focus();
+}
+var fx = document.createElement("canvas"); fx.id = "fx"; document.body.appendChild(fx);
+var fc = fx.getContext("2d"), parts = [], fxOn = false, fxEnd = 0;
+var FXC = ["#22C55E", "#FACC15", "#0A84FF", "#F43F5E", "#A855F7", "#FB923C"];
+function burst(x, y) {
+  var base = FXC[Math.floor(Math.random() * FXC.length)];
+  for (var i = 0; i < 60; i++) {
+    var a = Math.random() * TAU, s = 2 + Math.random() * 6;
+    parts.push({x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, l: 1, c: Math.random() < 0.7 ? base : FXC[Math.floor(Math.random() * FXC.length)]});
+  }
+}
+function fxLoop(now) {
+  fc.clearRect(0, 0, fx.width, fx.height);
+  parts = parts.filter(function (p) { return p.l > 0; });
+  parts.forEach(function (p) {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.09; p.vx *= 0.985; p.l -= 0.011;
+    fc.globalAlpha = Math.max(p.l, 0); fc.fillStyle = p.c;
+    fc.beginPath(); fc.arc(p.x, p.y, 2 + 2.5 * p.l, 0, TAU); fc.fill();
+  });
+  fc.globalAlpha = 1;
+  if (parts.length || now < fxEnd) requestAnimationFrame(fxLoop); else fxOn = false;
+}
+function fireworks() {
+  if (reduce) return;
+  fx.width = innerWidth; fx.height = innerHeight;
+  fxEnd = performance.now() + 2200;
+  for (var n = 0; n < 6; n++) setTimeout(function () {
+    burst(innerWidth * (0.12 + Math.random() * 0.76), innerHeight * (0.12 + Math.random() * 0.45));
+  }, n * 330);
+  if (!fxOn) { fxOn = true; requestAnimationFrame(fxLoop); }
+}
+document.getElementById("reset").onclick = function () {
+  right = 0; total = 0; document.getElementById("sc").textContent = "0/0";
+};
+spinBtn.onclick = spin;
+window.addEventListener("resize", size);
+document.fonts && document.fonts.ready.then(draw);
+var tkNames = ["Digital Twin FT UGM","PANDALA","RDTR-3D","Geo-CARTA","NARAGA","Jagad Lintang & Landep","Sumbu Filosofis Yogyakarta","DT Volcano","DT Forest Wanagama","DT Bina Marga","Geo-AI Twinverse"], tkHtml = "";
+for (var tn = 0; tn < 2; tn++) tkNames.forEach(function (x) { tkHtml += "<span>" + x.replace("&", "&amp;") + "</span>"; });
+document.getElementById("tk").innerHTML = tkHtml;
+size();
+</script>
+</body>
+</html>
